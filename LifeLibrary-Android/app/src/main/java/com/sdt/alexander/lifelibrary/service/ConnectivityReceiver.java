@@ -21,7 +21,7 @@ public class ConnectivityReceiver extends BroadcastReceiver {
     public final static List<ConnectivityObserver> observers = new ArrayList<>();
     public Boolean isNetworkEnabled = false;
 
-    private ConnectivityReceiver() {
+    public ConnectivityReceiver() {
         ConnectivityManager cm = (ConnectivityManager) App.getAppContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         isNetworkEnabled = cm.getActiveNetworkInfo().isConnected();
     }

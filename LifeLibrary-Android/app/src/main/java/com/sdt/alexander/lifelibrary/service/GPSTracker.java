@@ -1,6 +1,5 @@
 package com.sdt.alexander.lifelibrary.service;
 
-import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -8,52 +7,115 @@ import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 
 import com.sdt.alexander.lifelibrary.App;
 import com.sdt.alexander.lifelibrary.R;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Alexander on 3/24/2016.
  */
-public class GPSTracker extends Service implements LocationListener {
-
-    TrackerObserver observer;
-    private static final long MIN_DISTANCE = 10; // 10 meters
-    private static final long MIN_TIME = 1000 * 60; // 1 minute
+public class GPSTracker {
+    private final long MIN_DISTANCE = 5; // 5 meters
+    private final long MIN_TIME = 1000 * 10; // 10 sec
     private LocationManager locationManager;
+    private final List<TrackerObserver> observers = new ArrayList<>();
+    private boolean isGPSEnabled = true;
+    private LocationListener GPSListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            tracker.notifyObservers(location);
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+            switch (status) {
+                case LocationProvider.OUT_OF_SERVICE:
+                case LocationProvider.TEMPORARILY_UNAVAILABLE:
+                    isGPSEnabled = false;
+                    tracker.removeNetworkListener();
+                    break;
+                case LocationProvider.AVAILABLE:
+                    isGPSEnabled = true;
+                    tracker.addNetworkListener();
+                    break;
+            }
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+            isGPSEnabled = true;
+            tracker.addNetworkListener();
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+            isGPSEnabled = false;
+            tracker.removeNetworkListener();
+        }
+    };
+
+    private boolean isNetworkEnabled = true;
+    private LocationListener NetworkListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            tracker.notifyObservers(location);
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+            switch (status) {
+                case LocationProvider.OUT_OF_SERVICE:
+                case LocationProvider.TEMPORARILY_UNAVAILABLE:
+                    isNetworkEnabled = false;
+                    break;
+                case LocationProvider.AVAILABLE:
+                    isNetworkEnabled = true;
+                    break;
+            }
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+            isNetworkEnabled = true;
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+            isNetworkEnabled = false;
+        }
+    };
+
+    public static final GPSTracker tracker = new GPSTracker();
+
     Location location;
 
-
-    public GPSTracker(Context context) {
-        locationManager = (LocationManager) App.getAppContext().getSystemService(LOCATION_SERVICE);
+    private GPSTracker() {
+        locationManager = (LocationManager) App.getAppContext().getSystemService(Context.LOCATION_SERVICE);
     }
 
-    public Location startTracker() {
-        if (locationManager == null) {
-            return null;
+    public void addObserver(TrackerObserver observer) {
+        observers.add(observer);
+        if (observers.size() == 1) {
+            this.startTracker();
         }
-
-        boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-        if (isGPSEnabled) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
-        } else if (isNetworkEnabled) {
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
-        }
-
-        return location;
     }
 
-    public void stopTracker() {
-        if (locationManager != null) {
-            locationManager.removeUpdates(GPSTracker.this);
+    public void removeObserver(TrackerObserver observer) {
+        observers.remove(observer);
+        if (observers.size() == 0) {
+            this.stopTracker();
         }
+    }
+
+    public boolean isLocationAvailable() {
+        return isGPSEnabled || isNetworkEnabled;
     }
 
     public void showSettingsAlert(final Context context) {
@@ -77,30 +139,46 @@ public class GPSTracker extends Service implements LocationListener {
         alertDialog.show();
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
+    //------------------------------Private------------------------------
+    public void notifyObservers(Location location) {
         this.location = location;
-        observer.observe(location);
+        if (observers.size() != 0) {
+            if (observers.size() == 1) {
+                observers.get(0).observe(location);
+            } else if (observers.size() == 2) {
+                observers.get(0).observe(location);
+                observers.get(1).observe(location);
+            } else {
+                for (TrackerObserver observer : observers) {
+                    observer.observe(location);
+                }
+            }
+        }
     }
 
-    @Override
-    public void onProviderDisabled(String provider) {
+    private void addNetworkListener() {
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME, MIN_DISTANCE, NetworkListener);
     }
 
-    @Override
-    public void onProviderEnabled(String provider) {
+    private void removeNetworkListener() {
+        locationManager.removeUpdates(NetworkListener);
     }
 
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
+    private Location startTracker() {
+        if (locationManager == null) {
+            return null;
+        }
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, GPSListener);
+        this.addNetworkListener();
+
+        return location;
     }
 
-    @Override
-    public IBinder onBind(Intent arg0) {
-        return null;
-    }
-
-    public interface TrackerObserver {
-        void observe(Location location);
+    private void stopTracker() {
+        if (locationManager != null) {
+            locationManager.removeUpdates(GPSListener);
+            this.removeNetworkListener();
+        }
     }
 }

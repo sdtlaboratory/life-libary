@@ -1,0 +1,40 @@
+.vert_menu{
+margin-top:18px;	
+width:270px;
+float:left;
+position:relative;
+
+}
+.vert_menu h1{
+color:#00a5e4;
+margin-left:50px;
+}
+
+.topmenu{
+background-image:url(../img/vmenutop.png);
+height:33px;
+background-repeat:no-repeat;
+}
+.centermenu ul{
+margin-left:20px;
+}
+.centermenu li  {
+list-style:none;
+}
+
+.centermenu{
+background-image:url(../img/vmenucenter.png);
+background-repeat:repeat-y;
+}
+
+.bottommenu{
+height:23px;
+background-image:url(../img/vmenubuttom.png);
+background-repeat:no-repeat;
+}
+
+
+.centermenu a{
+
+color:#00a5e4;
+}

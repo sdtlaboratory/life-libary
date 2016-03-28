@@ -1,0 +1,12 @@
+#footer {
+	width: 913px;
+	margin: -54px auto 0;
+	height: 54px;
+	background-image:url(../img/bg-footer.jpg);
+}
+
+#footer p {
+	padding: 15px 15px 5px 15px;
+  	text-align: left;
+	color: #000;
+}

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" 
+"http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+
+	<definition name="base.definition" template="/WEB-INF/tiles-base/layout.jsp">
+		<put-attribute name="title" value="" />
+		<put-attribute name="header" value="/WEB-INF/tiles-base/header.jsp" />
+		<put-attribute name="menu" value="" />
+		<put-attribute name="body" value="" />
+		<put-attribute name="paginator" value="" />
+		<put-attribute name="footer" value="/WEB-INF/tiles-base/footer.jsp" />
+	</definition>
+
+	<definition name="login" extends="base.definition">
+		<put-attribute name="title" value="Reduction - Sign In" />
+		<put-attribute name="body" value="/WEB-INF/views/user/login.jsp" />
+	</definition>
+	<definition name="registration" extends="base.definition">
+		<put-attribute name="title" value="Reduction - Sign Out" />
+		<put-attribute name="body" value="/WEB-INF/views/user/registration.jsp" />
+	</definition>
+	
+		
+	<definition name="denied" extends="base.definition">
+		<put-attribute name="title" value="Reduction - Access Denied" />
+		<put-attribute name="body" value="/WEB-INF/views/user/denied.jsp" />
+		<put-attribute name="header" value="" />
+		<put-attribute name="menu" value="" />
+		<put-attribute name="footer" value="/WEB-INF/tiles-base/footer.jsp" />
+	</definition>
+	
+	<definition name="base.error" template="/WEB-INF/views/error.jsp"/>
+
+	<definition name="custom.error" template="/WEB-INF/views/error-custom.jsp"/>
+	
+	<definition name="home" extends="base.definition">
+		<put-attribute name="title" expression="Reduction" />
+		<put-attribute name="body" value="/WEB-INF/views/user/home.jsp" />
+	    <put-attribute name="menu" value="/WEB-INF/tiles-base/menu.jsp" />
+	    <put-attribute name="paginator" value="/WEB-INF/tiles-base/paginator.jsp" />
+	</definition>
+	
+</tiles-definitions>
